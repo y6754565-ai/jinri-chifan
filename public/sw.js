@@ -1,7 +1,7 @@
-const CACHE = "jinri-chifan-v14";
+const CACHE = "jinri-chifan-v16";
 const BASE = new URL("./", self.registration.scope);
 const ASSETS = [
-  "./", "styles.css", "app.js", "recipes.json", "manifest.webmanifest", "icons/app-icon.svg",
+  "./", "styles.css?v=16", "app.js?v=16", "recipes.json?v=16", "manifest.webmanifest", "icons/app-icon.svg",
   "images/cucumber-pork.jpg", "images/greens-pork.jpg",
   "images/smashed-cucumber.jpg", "images/greens-soup.jpg",
   "images/meat.svg", "images/tofu.svg", "images/egg.svg", "images/noodles.svg"

@@ -10,7 +10,7 @@
     <meta name="description" content="说出或选择现有食材，马上获得四道中国家常菜推荐。">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/app-icon.svg">
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=16">
     <title>今天吃饭</title>
   </head>
   <body>
@@ -48,6 +48,18 @@
           </div>
           <p class="voice-hint" id="voiceHint">说“我有西红柿、鸡蛋和面条”，会自动勾选。</p>
           <div class="picker-grid" id="ingredientPicker"></div>
+
+          <div class="pantry-section">
+            <div class="pantry-heading">
+              <div>
+                <h3>我家的调料</h3>
+                <p>首次默认都有；家里没有哪种，就点一下变灰。</p>
+              </div>
+              <button class="text-button" id="resetSeasonings" type="button">恢复全有</button>
+            </div>
+            <div class="seasoning-grid" id="seasoningPicker"></div>
+          </div>
+
           <button class="local-match-button" id="localMatchButton" disabled>从本地菜谱找 4 道菜</button>
         </div>
       </section>
@@ -88,6 +100,8 @@
           <div class="meta-row" id="modalMeta"></div>
           <h3>需要的食材</h3>
           <div class="modal-tags" id="modalIngredients"></div>
+          <h3>需要的调料</h3>
+          <div class="modal-tags seasoning-tags" id="modalSeasonings"></div>
           <h3>做法</h3>
           <ol class="steps" id="modalSteps"></ol>
         </div>
@@ -95,6 +109,6 @@
     </div>
 
     <div class="toast" id="toast" role="status"></div>
-    <script src="app.js?v=14" type="module"></script>
+    <script src="app.js?v=16" type="module"></script>
   </body>
 </html>

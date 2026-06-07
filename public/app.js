@@ -33,6 +33,20 @@ let currentRecipes = [];
 let installPrompt = null;
 let recipePack = [];
 const selectedIngredients = new Set();
+const allSeasonings = [
+  "食用油", "盐", "白糖", "生抽", "老抽", "醋", "料酒", "蚝油", "淀粉",
+  "葱", "姜", "蒜", "干辣椒", "花椒", "鸡精", "胡椒粉", "香油", "芝麻",
+  "八角", "桂皮", "香叶", "豆瓣酱", "咖喱", "孜然", "番茄酱", "甜面酱",
+  "黄豆酱", "芝麻酱", "五香粉", "泡打粉", "黄油", "蛋黄酱", "鱼露", "芥末"
+];
+const defaultSeasonings = [...allSeasonings];
+let storedSeasonings = null;
+try {
+  storedSeasonings = JSON.parse(localStorage.getItem("jinri-chifan-seasonings") || "null");
+} catch {
+  localStorage.removeItem("jinri-chifan-seasonings");
+}
+const selectedSeasonings = new Set(Array.isArray(storedSeasonings) ? storedSeasonings : defaultSeasonings);
 const preferredIngredients = [
   "鸡蛋", "猪肉", "鸡肉", "牛肉", "排骨", "鱼", "虾", "西红柿", "土豆", "茄子",
   "青椒", "黄瓜", "胡萝卜", "洋葱", "白菜", "青菜", "菠菜", "生菜", "芹菜", "花菜",
@@ -48,7 +62,7 @@ const ingredientAliases = {
 };
 
 async function loadRecipePack() {
-  const response = await fetch(assetUrl("recipes.json"));
+  const response = await fetch(assetUrl("recipes.json?v=16"));
   recipePack = await response.json();
   const frequency = new Map();
   recipePack.forEach((recipe) => recipe.ingredients.forEach((item) => {
@@ -70,6 +84,21 @@ async function loadRecipePack() {
 
 loadRecipePack().catch(() => toast("本地菜谱包加载失败，请刷新页面"));
 
+function renderSeasonings() {
+  $("#seasoningPicker").innerHTML = allSeasonings.map((seasoning) => `
+    <button class="seasoning-choice ${selectedSeasonings.has(seasoning) ? "selected" : ""}"
+      type="button" data-seasoning="${seasoning}" aria-pressed="${selectedSeasonings.has(seasoning)}">
+      ${seasoning}
+    </button>
+  `).join("");
+}
+
+function saveSeasonings() {
+  localStorage.setItem("jinri-chifan-seasonings", JSON.stringify([...selectedSeasonings]));
+}
+
+renderSeasonings();
+
 $("#ingredientPicker").addEventListener("click", (event) => {
   const button = event.target.closest(".ingredient-choice");
   if (!button) return;
@@ -78,6 +107,25 @@ $("#ingredientPicker").addEventListener("click", (event) => {
   else selectedIngredients.add(ingredient);
   button.classList.toggle("selected");
   $("#localMatchButton").disabled = selectedIngredients.size === 0;
+});
+
+$("#seasoningPicker").addEventListener("click", (event) => {
+  const button = event.target.closest(".seasoning-choice");
+  if (!button) return;
+  const seasoning = button.dataset.seasoning;
+  if (selectedSeasonings.has(seasoning)) selectedSeasonings.delete(seasoning);
+  else selectedSeasonings.add(seasoning);
+  button.classList.toggle("selected", selectedSeasonings.has(seasoning));
+  button.setAttribute("aria-pressed", String(selectedSeasonings.has(seasoning)));
+  saveSeasonings();
+});
+
+$("#resetSeasonings").addEventListener("click", () => {
+  selectedSeasonings.clear();
+  defaultSeasonings.forEach((seasoning) => selectedSeasonings.add(seasoning));
+  saveSeasonings();
+  renderSeasonings();
+  toast("已恢复为全部调料都有");
 });
 
 function syncIngredientButtons() {
@@ -218,29 +266,36 @@ $("#localMatchButton").addEventListener("click", () => {
   ).map((recipe) => {
     const used = recipe.ingredients.filter((item) => selected.includes(item));
     const missing = recipe.ingredients.filter((item) => !selected.includes(item));
+    const unavailableSeasonings = (recipe.seasonings || [])
+      .filter((item) => !selectedSeasonings.has(item));
     const selectedCoverage = used.length / selected.length;
-    const score = used.length * 120 + selectedCoverage * 60 - Math.min(missing.length, 6) * 9;
+    const score = used.length * 120 + selectedCoverage * 60;
     return {
       ...recipe,
       used,
-      extras: [...missing, ...recipe.extras],
-      match: Math.max(40, Math.min(100, Math.round(65 + selectedCoverage * 35 - Math.min(missing.length, 5) * 4))),
-      score
+      extras: recipe.extras,
+      unavailableSeasonings,
+      match: Math.max(70, Math.min(100, Math.round(72 + selectedCoverage * 28))),
+      score,
     };
-  }).filter((recipe) => recipe.used.length > 0)
+  }).filter((recipe) =>
+    recipe.used.length > 0
+    && recipe.used.length === recipe.ingredients.length
+    && recipe.unavailableSeasonings.length === 0
+  )
     .sort((a, b) => b.score - a.score || a.time - b.time)
     .slice(0, 4);
 
   if (scored.length === 0) {
-    toast("菜谱包里暂时没有这些食材的菜，请换一种搭配");
+    toast("现有食材和调料暂时配不出菜，请增加食材或调料");
     return;
   }
 
   renderResults({
     ingredients: selected,
     summary: scored.length < 4
-      ? `只找到 ${scored.length} 道真正相关的菜，没有用无关菜凑数。继续增加食材会有更多组合。`
-      : `本地菜谱包已按你选择的 ${selected.length} 种食材完成匹配，全程不调用 AI。`,
+      ? `严格按现有食材和调料找到 ${scored.length} 道菜，没有用缺材料的菜凑数。`
+      : `已按你现有的 ${selected.length} 种食材和家庭调料库严格匹配。`,
     recipes: scored,
     local: true
   });
@@ -302,6 +357,9 @@ $("#recipeGrid").addEventListener("click", (event) => {
     ...recipe.used.map((item) => `<span>${escapeHtml(item)}</span>`),
     ...recipe.extras.map((item) => `<span class="extra">${escapeHtml(item)}</span>`)
   ].join("");
+  $("#modalSeasonings").innerHTML = (recipe.seasonings || []).length
+    ? recipe.seasonings.map((item) => `<span>${escapeHtml(item)}</span>`).join("")
+    : "<span class=\"extra\">无需额外调料</span>";
   $("#modalSteps").innerHTML = recipe.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
   modalBackdrop.hidden = false;
   document.body.style.overflow = "hidden";

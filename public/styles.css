@@ -72,6 +72,16 @@ h1 em, h2 em { color: var(--orange); font-style: normal; }
 .picker-grid { display:flex; flex-wrap:wrap; gap:8px; }
 .ingredient-choice { border:1px solid var(--line); padding:9px 13px; border-radius:99px; color:var(--ink); background:var(--paper); font-size:13px; cursor:pointer; }
 .ingredient-choice.selected { color:#fff; border-color:var(--green); background:var(--green); }
+.pantry-section { margin-top:24px; padding-top:20px; border-top:1px solid var(--line); }
+.pantry-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:13px; }
+.pantry-heading h3 { margin:0; font:750 19px serif; }
+.pantry-heading p { margin:5px 0 0; color:var(--muted); font-size:12px; }
+.seasoning-grid { display:flex; flex-wrap:wrap; gap:8px; }
+.seasoning-choice {
+  border:1px solid var(--line); padding:8px 12px; border-radius:99px; color:var(--muted);
+  background:#eeeae0; font-size:12px; cursor:pointer;
+}
+.seasoning-choice.selected { color:#fff; border-color:var(--green); background:var(--green); }
 .local-match-button { width:100%; height:50px; margin-top:18px; border:0; border-radius:16px; color:#fff; background:var(--green); font-weight:800; cursor:pointer; }
 .local-match-button:disabled { opacity:.35; cursor:default; }
 
@@ -119,6 +129,7 @@ h1 em, h2 em { color: var(--orange); font-style: normal; }
 .meta-row { display:flex; gap:20px; padding:17px 0; margin:18px 0; border-block:1px solid var(--line); font-size:14px; }
 .modal-content h3 { margin:22px 0 12px; font-size:16px; }
 .modal-tags .extra { color:var(--muted); background:#eeeae0; }
+.seasoning-tags span { color:#7a512f; background:#f3dfca; }
 .steps { margin:0; padding:0; list-style:none; counter-reset:step; }
 .steps li { position:relative; min-height:36px; margin-bottom:14px; padding-left:43px; line-height:1.6; font-size:14px; counter-increment:step; }
 .steps li::before { content:counter(step); position:absolute; left:0; top:0; display:grid; place-items:center; width:29px; height:29px; border-radius:10px; color:#fff; background:var(--green); font-size:12px; font-weight:800; }
