@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 480">
+  <rect width="600" height="480" fill="#e8d5c1"/><circle cx="300" cy="240" r="190" fill="#fff9ed"/><circle cx="300" cy="240" r="150" fill="#c77c4f"/>
+  <g fill="#773b2e"><rect x="172" y="151" width="108" height="75" rx="24" transform="rotate(-14 172 151)"/><rect x="310" y="135" width="112" height="78" rx="24" transform="rotate(17 310 135)"/><rect x="244" y="245" width="119" height="80" rx="25" transform="rotate(-8 244 245)"/><rect x="352" y="268" width="93" height="68" rx="22" transform="rotate(15 352 268)"/><rect x="154" y="280" width="98" height="71" rx="22" transform="rotate(-17 154 280)"/></g>
+  <g fill="#dbb37d"><circle cx="286" cy="184" r="8"/><circle cx="399" cy="230" r="8"/><circle cx="210" cy="253" r="8"/><circle cx="324" cy="354" r="8"/></g>
+  <g fill="#77a04e"><ellipse cx="305" cy="111" rx="43" ry="17"/><ellipse cx="443" cy="218" rx="39" ry="15" transform="rotate(70 443 218)"/></g>
+</svg>

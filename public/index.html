@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#f7f4ec">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="今天吃饭">
+    <meta name="description" content="说出或选择现有食材，马上获得四道中国家常菜推荐。">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/app-icon.svg">
+    <link rel="stylesheet" href="styles.css?v=13">
+    <title>今天吃饭</title>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="今天吃饭首页">
+          <span class="brand-mark">食</span>
+          <span>今天吃饭</span>
+        </a>
+        <button class="round-button" id="installButton" aria-label="安装到主屏幕" title="安装到主屏幕">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 16v4h14v-4"/></svg>
+        </button>
+      </header>
+
+      <section class="hero" id="pickerSection">
+        <div class="eyebrow">今晚不用想</div>
+        <h1>冰箱里有什么，<br><em>就吃什么。</em></h1>
+        <p class="hero-copy">说出或选择你现有的食材，免费匹配适合今天做的家常菜。</p>
+
+        <div class="free-picker">
+          <div class="picker-title">
+            <div>
+              <span class="free-badge" id="recipePackBadge">正在加载菜谱…</span>
+              <h2>告诉我你有什么</h2>
+            </div>
+            <button class="text-button" id="clearIngredients">清空</button>
+          </div>
+          <p>不用 AI、不花钱，本地菜谱包直接匹配。</p>
+          <div class="voice-input-wrap">
+            <input id="ingredientTextInput" type="text" inputmode="text" autocomplete="off" placeholder="例如：我有土豆、青椒和猪肉">
+            <button class="voice-button" id="voiceButton" type="button" aria-label="语音输入食材">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/></svg>
+              <span>按下说话</span>
+            </button>
+          </div>
+          <p class="voice-hint" id="voiceHint">说“我有西红柿、鸡蛋和面条”，会自动勾选。</p>
+          <div class="picker-grid" id="ingredientPicker"></div>
+          <button class="local-match-button" id="localMatchButton" disabled>从本地菜谱找 4 道菜</button>
+        </div>
+      </section>
+
+      <section class="loading-section" id="loadingSection" hidden>
+        <div class="loader-orbit"><span></span><i>食</i></div>
+        <h2 id="loadingTitle">正在看看你的食材…</h2>
+        <p id="loadingCopy">识别种类，搭配荤素，挑选家常菜</p>
+        <div class="loading-track"><span></span></div>
+      </section>
+
+      <section class="results-section" id="resultsSection" hidden>
+        <div class="result-heading">
+          <div>
+            <div class="eyebrow">今天的菜单</div>
+            <h2>可以做这 <em id="resultCount">4</em> 道菜</h2>
+          </div>
+          <button class="text-button" id="resetButton">重新选择</button>
+        </div>
+        <p class="result-summary" id="resultSummary"></p>
+        <div class="ingredients-wrap">
+          <span class="label">识别到</span>
+          <div class="ingredient-list" id="ingredientList"></div>
+        </div>
+        <div class="recipe-grid" id="recipeGrid"></div>
+        <p class="notice" id="demoNotice" hidden></p>
+      </section>
+    </main>
+
+    <div class="modal-backdrop" id="modalBackdrop" hidden>
+      <article class="recipe-modal" id="recipeModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="modalClose" aria-label="关闭">×</button>
+        <img id="modalImage" alt="">
+        <div class="modal-content">
+          <span class="match-pill" id="modalMatch"></span>
+          <h2 id="modalTitle"></h2>
+          <p id="modalSubtitle"></p>
+          <div class="meta-row" id="modalMeta"></div>
+          <h3>需要的食材</h3>
+          <div class="modal-tags" id="modalIngredients"></div>
+          <h3>做法</h3>
+          <ol class="steps" id="modalSteps"></ol>
+        </div>
+      </article>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+    <script src="app.js?v=13" type="module"></script>
+  </body>
+</html>
