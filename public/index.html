@@ -7,10 +7,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="今天吃饭">
-    <meta name="description" content="说出或选择现有食材，马上获得四道中国家常菜推荐。">
+    <meta name="description" content="说出或选择现有食材，查看全部能做的中国家常菜。">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/app-icon.svg">
-    <link rel="stylesheet" href="styles.css?v=16">
+    <link rel="stylesheet" href="styles.css?v=17">
     <title>今天吃饭</title>
   </head>
   <body>
@@ -60,7 +60,7 @@
             <div class="seasoning-grid" id="seasoningPicker"></div>
           </div>
 
-          <button class="local-match-button" id="localMatchButton" disabled>从本地菜谱找 4 道菜</button>
+          <button class="local-match-button" id="localMatchButton" disabled>查看全部能做的菜</button>
         </div>
       </section>
 
@@ -75,7 +75,7 @@
         <div class="result-heading">
           <div>
             <div class="eyebrow">今天的菜单</div>
-            <h2>可以做这 <em id="resultCount">4</em> 道菜</h2>
+            <h2>找到 <em id="resultCount">0</em> 道能做的菜</h2>
           </div>
           <button class="text-button" id="resetButton">重新选择</button>
         </div>
@@ -84,7 +84,35 @@
           <span class="label">识别到</span>
           <div class="ingredient-list" id="ingredientList"></div>
         </div>
+        <div class="result-tools">
+          <label class="result-search">
+            <span class="sr-only">搜索菜名</span>
+            <input id="recipeSearch" type="search" inputmode="search" autocomplete="off" placeholder="搜索菜名">
+          </label>
+          <div class="filter-row" id="categoryFilters" aria-label="按分类筛选"></div>
+          <div class="filter-selects">
+            <label>
+              <span>耗时</span>
+              <select id="timeFilter">
+                <option value="all">不限时间</option>
+                <option value="15">15 分钟内</option>
+                <option value="30">30 分钟内</option>
+                <option value="60">60 分钟内</option>
+              </select>
+            </label>
+            <label>
+              <span>排序</span>
+              <select id="sortFilter">
+                <option value="match">食材利用最多</option>
+                <option value="time">时间最短</option>
+                <option value="name">菜名排序</option>
+              </select>
+            </label>
+          </div>
+          <p class="filtered-count" id="filteredCount"></p>
+        </div>
         <div class="recipe-grid" id="recipeGrid"></div>
+        <button class="load-more-button" id="loadMoreButton" type="button" hidden>再显示一些</button>
         <p class="notice" id="demoNotice" hidden></p>
       </section>
     </main>
@@ -109,6 +137,6 @@
     </div>
 
     <div class="toast" id="toast" role="status"></div>
-    <script src="app.js?v=16" type="module"></script>
+    <script src="app.js?v=17" type="module"></script>
   </body>
 </html>

@@ -30,6 +30,10 @@ const categoryFallbacks = {
 };
 
 let currentRecipes = [];
+let matchedRecipes = [];
+let filteredRecipes = [];
+let visibleRecipeCount = 24;
+let activeCategory = "全部";
 let installPrompt = null;
 let recipePack = [];
 const selectedIngredients = new Set();
@@ -58,12 +62,34 @@ const ingredientAliases = {
   菠菜: "菠菜", 菜心: "菜心", 娃娃菜: "白菜", 白菜: "白菜",
   花菜: "花菜", 菜花: "花菜", 猪肉: "猪肉", 瘦肉: "猪肉",
   鸡胸肉: "鸡肉", 鸡腿肉: "鸡肉", 皮蛋: "皮蛋", 松花蛋: "皮蛋",
-  面条: "面条", 挂面: "面条"
+  面条: "面条", 挂面: "面条", 活虾: "虾", 鲜虾: "虾", 海虾: "虾",
+  罗氏虾: "虾", 红虾: "虾", 虾仁: "虾", 五花肉: "猪肉", 猪五花肉: "猪肉",
+  带皮五花肉: "猪肉", 肉沫: "猪肉", 肉末: "猪肉", 新鲜鸡蛋: "鸡蛋",
+  鸡腿: "鸡肉", 鸡胸: "鸡肉", 鲤鱼: "鱼", 鲈鱼: "鱼", 草鱼: "鱼",
+  鳊鱼: "鱼", 桂鱼: "鱼", 巴沙鱼: "鱼", 鲜面条: "面条"
 };
+const ignoredRecipeIngredients = new Set([
+  "水", "冷水", "热水", "温水", "饮用水", "高汤", "主料", "辅料", "超市",
+  "量杯", "厨房秤", "厨房纸"
+]);
+
+function canonicalIngredient(value) {
+  if (ignoredRecipeIngredients.has(value)) return "";
+  if (ingredientAliases[value]) return ingredientAliases[value];
+  if (/虾$/.test(value) && !value.includes("虾皮")) return "虾";
+  if (/^(新鲜)?鸡蛋$/.test(value)) return "鸡蛋";
+  if (/^(猪)?(五花肉|瘦肉|肉末|肉沫)$/.test(value)) return "猪肉";
+  return value;
+}
 
 async function loadRecipePack() {
-  const response = await fetch(assetUrl("recipes.json?v=16"));
+  const response = await fetch(assetUrl("recipes.json?v=17"));
   recipePack = await response.json();
+  recipePack.forEach((recipe) => {
+    recipe.ingredients = [...new Set(recipe.ingredients
+      .map(canonicalIngredient)
+      .filter(Boolean))];
+  });
   const frequency = new Map();
   recipePack.forEach((recipe) => recipe.ingredients.forEach((item) => {
     frequency.set(item, (frequency.get(item) || 0) + 1);
@@ -77,7 +103,7 @@ async function loadRecipePack() {
   const dishCount = recipePack.filter((recipe) =>
     recipe.imageExact && !["饮品", "调味料", "半成品"].includes(recipe.category)
   ).length;
-  $("#recipePackBadge").textContent = `${dishCount} 道菜 · 完全免费`;
+  $("#recipePackBadge").textContent = `${dishCount} 道可用菜谱 · 完全免费`;
   $("#ingredientPicker").innerHTML = commonIngredients
     .map((item) => `<button class="ingredient-choice" data-ingredient="${item}">${item}</button>`).join("");
 }
@@ -283,8 +309,7 @@ $("#localMatchButton").addEventListener("click", () => {
     && recipe.used.length === recipe.ingredients.length
     && recipe.unavailableSeasonings.length === 0
   )
-    .sort((a, b) => b.score - a.score || a.time - b.time)
-    .slice(0, 4);
+    .sort((a, b) => b.score - a.score || a.time - b.time);
 
   if (scored.length === 0) {
     toast("现有食材和调料暂时配不出菜，请增加食材或调料");
@@ -293,9 +318,7 @@ $("#localMatchButton").addEventListener("click", () => {
 
   renderResults({
     ingredients: selected,
-    summary: scored.length < 4
-      ? `严格按现有食材和调料找到 ${scored.length} 道菜，没有用缺材料的菜凑数。`
-      : `已按你现有的 ${selected.length} 种食材和家庭调料库严格匹配。`,
+    summary: `严格按你现有的 ${selected.length} 种食材和家庭调料库匹配，没有用缺材料的菜凑数。`,
     recipes: scored,
     local: true
   });
@@ -313,12 +336,59 @@ function toast(message) {
 }
 
 function renderResults(data) {
-  currentRecipes = data.recipes;
-  $("#resultCount").textContent = data.recipes.length;
+  matchedRecipes = data.recipes;
+  activeCategory = "全部";
+  visibleRecipeCount = 24;
+  $("#recipeSearch").value = "";
+  $("#timeFilter").value = "all";
+  $("#sortFilter").value = "match";
+  $("#resultCount").textContent = matchedRecipes.length;
   $("#resultSummary").textContent = data.summary;
   $("#ingredientList").innerHTML = data.ingredients
     .map((item) => `<span class="ingredient-tag">${escapeHtml(item)}</span>`).join("");
-  $("#recipeGrid").innerHTML = data.recipes.map((recipe, index) => `
+  renderCategoryFilters();
+  applyResultFilters();
+  $("#demoNotice").hidden = true;
+}
+
+function renderCategoryFilters() {
+  const categories = ["全部", ...new Set(matchedRecipes.map((recipe) => recipe.category))];
+  $("#categoryFilters").innerHTML = categories.map((category) => {
+    const count = category === "全部"
+      ? matchedRecipes.length
+      : matchedRecipes.filter((recipe) => recipe.category === category).length;
+    return `<button class="filter-chip ${category === activeCategory ? "selected" : ""}"
+      type="button" data-category="${escapeHtml(category)}">${escapeHtml(category)} ${count}</button>`;
+  }).join("");
+}
+
+function applyResultFilters({ resetVisible = false } = {}) {
+  if (resetVisible) visibleRecipeCount = 24;
+  const keyword = $("#recipeSearch").value.trim().toLowerCase();
+  const maxTime = $("#timeFilter").value === "all" ? Infinity : Number($("#timeFilter").value);
+  const sort = $("#sortFilter").value;
+
+  filteredRecipes = matchedRecipes.filter((recipe) =>
+    (activeCategory === "全部" || recipe.category === activeCategory)
+    && recipe.time <= maxTime
+    && (!keyword || recipe.name.toLowerCase().includes(keyword))
+  );
+
+  filteredRecipes.sort((a, b) => {
+    if (sort === "time") return a.time - b.time || b.score - a.score;
+    if (sort === "name") return a.name.localeCompare(b.name, "zh-CN");
+    return b.used.length - a.used.length || b.score - a.score || a.time - b.time;
+  });
+
+  renderRecipeCards();
+}
+
+function renderRecipeCards() {
+  currentRecipes = filteredRecipes.slice(0, visibleRecipeCount);
+  $("#filteredCount").textContent = filteredRecipes.length === matchedRecipes.length
+    ? `共 ${filteredRecipes.length} 道，当前显示 ${currentRecipes.length} 道`
+    : `筛选出 ${filteredRecipes.length} 道，当前显示 ${currentRecipes.length} 道`;
+  $("#recipeGrid").innerHTML = currentRecipes.map((recipe, index) => `
     <button class="recipe-card" data-index="${index}">
       <img class="recipe-image" src="${assetUrl(recipe.image || imageMap[recipe.imageKey] || imageMap["stir-fry"])}" alt="${escapeHtml(recipe.name)}成品图">
       <div class="recipe-card-body">
@@ -333,11 +403,31 @@ function renderResults(data) {
   `).join("");
   $("#recipeGrid").querySelectorAll(".recipe-image").forEach((image, index) => {
     image.addEventListener("error", () => {
-      image.src = assetUrl(categoryFallbacks[data.recipes[index].category] || imageMap["stir-fry"]);
+      image.src = assetUrl(categoryFallbacks[currentRecipes[index].category] || imageMap["stir-fry"]);
     }, { once: true });
   });
-  $("#demoNotice").hidden = true;
+  $("#loadMoreButton").hidden = currentRecipes.length >= filteredRecipes.length;
+  $("#recipeGrid").classList.toggle("empty", filteredRecipes.length === 0);
+  if (filteredRecipes.length === 0) {
+    $("#recipeGrid").innerHTML = "<p class=\"empty-results\">这个筛选条件下没有菜，换个分类或时间试试。</p>";
+  }
 }
+
+$("#categoryFilters").addEventListener("click", (event) => {
+  const button = event.target.closest(".filter-chip");
+  if (!button) return;
+  activeCategory = button.dataset.category;
+  renderCategoryFilters();
+  applyResultFilters({ resetVisible: true });
+});
+
+$("#recipeSearch").addEventListener("input", () => applyResultFilters({ resetVisible: true }));
+$("#timeFilter").addEventListener("change", () => applyResultFilters({ resetVisible: true }));
+$("#sortFilter").addEventListener("change", () => applyResultFilters({ resetVisible: true }));
+$("#loadMoreButton").addEventListener("click", () => {
+  visibleRecipeCount += 24;
+  renderRecipeCards();
+});
 
 $("#recipeGrid").addEventListener("click", (event) => {
   const card = event.target.closest(".recipe-card");
@@ -378,6 +468,8 @@ $("#resetButton").addEventListener("click", () => {
   resultsSection.hidden = true;
   pickerSection.hidden = false;
   currentRecipes = [];
+  matchedRecipes = [];
+  filteredRecipes = [];
   selectedIngredients.clear();
   $("#ingredientTextInput").value = "";
   $("#voiceHint").textContent = "说“我有西红柿、鸡蛋和面条”，会自动勾选。";

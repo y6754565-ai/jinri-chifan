@@ -1,7 +1,7 @@
 {
   "name": "今天吃饭",
   "short_name": "今天吃饭",
-  "description": "说出或选择食材，推荐四道中国家常菜",
+  "description": "说出或选择食材，查看全部能做的中国家常菜",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
