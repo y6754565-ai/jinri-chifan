@@ -10,7 +10,7 @@
     <meta name="description" content="说出或选择现有食材，马上获得四道中国家常菜推荐。">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/app-icon.svg">
-    <link rel="stylesheet" href="styles.css?v=13">
+    <link rel="stylesheet" href="styles.css?v=14">
     <title>今天吃饭</title>
   </head>
   <body>
@@ -40,7 +40,7 @@
           </div>
           <p>不用 AI、不花钱，本地菜谱包直接匹配。</p>
           <div class="voice-input-wrap">
-            <input id="ingredientTextInput" type="text" inputmode="text" autocomplete="off" placeholder="例如：我有土豆、青椒和猪肉">
+            <input id="ingredientTextInput" type="text" inputmode="text" enterkeyhint="go" autocomplete="off" placeholder="例如：我有土豆、青椒和猪肉">
             <button class="voice-button" id="voiceButton" type="button" aria-label="语音输入食材">
               <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/></svg>
               <span>按下说话</span>
@@ -95,6 +95,6 @@
     </div>
 
     <div class="toast" id="toast" role="status"></div>
-    <script src="app.js?v=13" type="module"></script>
+    <script src="app.js?v=14" type="module"></script>
   </body>
 </html>

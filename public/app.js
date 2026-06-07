@@ -110,32 +110,55 @@ function selectIngredientsFromText(text) {
 }
 
 let recognition = null;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
+
+if (isIOS) {
+  $("#voiceButton span").textContent = "打开听写";
+  $("#voiceHint").textContent = "点击“打开听写”，再点苹果键盘右下角的麦克风。";
+} else if (SpeechRecognition) {
   recognition = new SpeechRecognition();
   recognition.lang = "zh-CN";
-  recognition.interimResults = false;
+  recognition.interimResults = true;
+  recognition.continuous = false;
   recognition.maxAlternatives = 1;
+  let latestTranscript = "";
   recognition.onstart = () => {
+    latestTranscript = "";
     $("#voiceButton").classList.add("listening");
     $("#voiceButton span").textContent = "正在听…";
     $("#voiceHint").textContent = "请说出你现有的食材";
   };
   recognition.onresult = (event) => {
-    const transcript = event.results[0][0].transcript;
-    $("#ingredientTextInput").value = transcript;
-    selectIngredientsFromText(transcript);
+    latestTranscript = Array.from(event.results)
+      .map((result) => result[0]?.transcript || "")
+      .join("")
+      .trim();
+    if (!latestTranscript) return;
+    $("#ingredientTextInput").value = latestTranscript;
+    selectIngredientsFromText(latestTranscript);
+  };
+  recognition.onnomatch = () => {
+    $("#voiceHint").textContent = "没有听清，请靠近一点再说一次";
   };
   recognition.onerror = (event) => {
-    const message = event.error === "not-allowed"
-      ? "请允许浏览器使用麦克风"
-      : "没有听清，请再说一次";
+    const messages = {
+      "not-allowed": "请允许浏览器使用麦克风",
+      "service-not-allowed": "浏览器暂时不能使用语音识别",
+      "no-speech": "没有听到声音，请再说一次",
+      network: "语音服务连接失败，请检查网络"
+    };
+    const message = messages[event.error] || "没有听清，请再说一次";
     toast(message);
     $("#voiceHint").textContent = message;
   };
   recognition.onend = () => {
     $("#voiceButton").classList.remove("listening");
     $("#voiceButton span").textContent = "按下说话";
+    if (!latestTranscript) {
+      $("#voiceHint").textContent = "没有生成文字，请再试一次或直接输入食材。";
+    }
   };
 } else {
   $("#voiceButton").disabled = true;
@@ -144,6 +167,14 @@ if (SpeechRecognition) {
 }
 
 $("#voiceButton").addEventListener("click", () => {
+  if (isIOS) {
+    const input = $("#ingredientTextInput");
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+    $("#voiceHint").textContent = "现在点苹果键盘右下角的麦克风，说出食材。";
+    toast("请点键盘右下角的麦克风开始听写");
+    return;
+  }
   if (!recognition) return;
   if ($("#voiceButton").classList.contains("listening")) recognition.stop();
   else {

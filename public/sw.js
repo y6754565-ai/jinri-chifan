@@ -1,4 +1,4 @@
-const CACHE = "jinri-chifan-v13";
+const CACHE = "jinri-chifan-v14";
 const BASE = new URL("./", self.registration.scope);
 const ASSETS = [
   "./", "styles.css", "app.js", "recipes.json", "manifest.webmanifest", "icons/app-icon.svg",
